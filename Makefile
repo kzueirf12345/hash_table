@@ -1,7 +1,7 @@
 .PHONY: all build clean rebuild \
 		logger_build logger_clean logger_rebuild \
-		clean_all clean_log clean_out clean_obj clean_deps clean_txt clean_bin \
-		analyze generate_analyze
+		fist_build fist_clean fist_rebuild \
+		clean_all clean_log clean_out clean_obj clean_deps clean_txt clean_bin
 
 
 PROJECT_NAME = hash_table
@@ -78,7 +78,7 @@ endif
 
 FLAGS += $(ADD_FLAGS)
 
-LIBS = -lm -L./libs/logger -llogger
+LIBS = -lm -L./libs/logger -llogger -L./libs/list_on_array -lfist
 
 
 DIRS = utils flags 
@@ -105,7 +105,7 @@ rebuild: clean_all build
 $(PROJECT_NAME).out: $(OBJECTS_REL_PATH)
 	@$(COMPILER) $(FLAGS) -o $@ $^  $(LIBS)
 
-$(BUILD_DIR)/%.o : $(SRC_DIR)/%.c | ./$(BUILD_DIR)/ $(BUILD_DIRS) logger_build
+$(BUILD_DIR)/%.o : $(SRC_DIR)/%.c | ./$(BUILD_DIR)/ $(BUILD_DIRS) logger_build fist_build
 	@$(COMPILER) $(FLAGS) -I$(SRC_DIR) -I./libs -I./assets -c -MMD -MP $< -o $@
 
 -include $(DEPS_REL_PATH)
@@ -124,9 +124,17 @@ logger_build:
 logger_clean:
 	make ADD_FLAGS="$(ADD_FLAGS)" clean -C ./libs/logger
 
+fist_rebuild: fist_build fist_clean
+
+fist_build:
+	@make ADD_FLAGS="$(ADD_FLAGS)" FLAGS="$(FLAGS)" DEBUG_=$(DEBUG_) build -C ./libs/list_on_array
+
+fist_clean:
+	make ADD_FLAGS="$(ADD_FLAGS)" clean -C ./libs/list_on_array
 
 
-clean_all: clean_obj clean_deps clean_out logger_clean
+
+clean_all: clean_obj clean_deps clean_out logger_clean fist_clean
 
 clean: clean_obj clean_deps clean_out
 

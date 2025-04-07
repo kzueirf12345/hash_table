@@ -5,6 +5,7 @@
 #include "utils/utils.h"
 #include "logger/liblogger.h"
 #include "flags/flags.h"
+#include "list_on_array/libfist.h"
 
 int init_all(flags_objs_t* const flags_objs, const int argc, char* const * argv);
 int dtor_all(flags_objs_t* const flags_objs);
@@ -19,6 +20,10 @@ int main(const int argc, char* const argv[])
 
     printf("Hello, world!\n");
 
+    fist_t fist = {};
+    FIST_CTOR(&fist, sizeof(size_t), 1);
+
+    fist_dtor(&fist);
 
     INT_ERROR_HANDLE(                                                        dtor_all(&flags_objs));
 
