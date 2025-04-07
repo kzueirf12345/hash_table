@@ -81,10 +81,11 @@ FLAGS += $(ADD_FLAGS)
 LIBS = -lm -L./libs/logger -llogger -L./libs/list_on_array -lfist
 
 
-DIRS = utils flags 
+DIRS = utils flags smash_map smash_map/funcs smash_map/verification
 BUILD_DIRS = $(DIRS:%=$(BUILD_DIR)/%)
 
-SOURCES = main.c utils/utils.c flags/flags.c
+SOURCES = main.c utils/utils.c flags/flags.c smash_map/funcs/funcs.c \
+		  smash_map/verification/verification.c
 
 SOURCES_REL_PATH = $(SOURCES:%=$(SRC_DIR)/%)
 OBJECTS_REL_PATH = $(SOURCES:%.c=$(BUILD_DIR)/%.o)
@@ -94,7 +95,6 @@ DEPS_REL_PATH = $(OBJECTS_REL_PATH:%.o=%.d)
 all: build start
 
 start:
-	# LD_LIBRARY_PATH=/usr/local/lib
 	./$(PROJECT_NAME).out $(OPTS)
 
 build: $(PROJECT_NAME).out

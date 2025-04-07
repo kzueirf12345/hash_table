@@ -1,5 +1,5 @@
-#ifndef MANDELBROT2_SRC_UTILS_CONSOLE_H
-#define MANDELBROT2_SRC_UTILS_CONSOLE_H
+#ifndef HASH_TABLE_SRC_UTILS_CONSOLE_H
+#define HASH_TABLE_SRC_UTILS_CONSOLE_H
 
 /// @brief Нормальное форматирование строки при выводе в консоль escape-последовательностью
 #define NORMAL_FORMAT "\e[0m"
@@ -36,4 +36,4 @@
 #define ITALIC_TEXT(...) ITALIC_FORMAT __VA_ARGS__ NORMAL_FORMAT
 
 
-#endif /* MANDELBROT2_SRC_UTILS_CONSOLE_H */
+#endif /* HASH_TABLE_SRC_UTILS_CONSOLE_H */

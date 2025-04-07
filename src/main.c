@@ -6,6 +6,7 @@
 #include "logger/liblogger.h"
 #include "flags/flags.h"
 #include "list_on_array/libfist.h"
+#include "smash_map/funcs/funcs.h"
 
 int init_all(flags_objs_t* const flags_objs, const int argc, char* const * argv);
 int dtor_all(flags_objs_t* const flags_objs);
@@ -18,14 +19,12 @@ int main(const int argc, char* const argv[])
 
     INT_ERROR_HANDLE(init_all(&flags_objs, argc, argv));
 
-    
-    printf("Hello, world!\n");
-    
-    fist_t fist = {};
-    FIST_CTOR(&fist, sizeof(size_t), 1);
-    FIST_DUMB(&fist, NULL);
+    smash_map_t map = {};
+    SMASH_MAP_ERROR_HANDLE(smash_map_ctor(&map, 1024, sizeof(char*), sizeof(size_t)),
+                                                                              dtor_all(&flags_objs);
+    );
 
-    fist_dtor(&fist);
+    smash_map_dtor(&map);
 
     INT_ERROR_HANDLE(                                                        dtor_all(&flags_objs));
 

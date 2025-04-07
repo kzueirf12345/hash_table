@@ -1,5 +1,5 @@
-#ifndef MANDELBRAT2_SRC_UTILS_UTILS_H
-#define MANDELBRAT2_SRC_UTILS_UTILS_H
+#ifndef HASH_TABLE_SRC_UTILS_UTILS_H
+#define HASH_TABLE_SRC_UTILS_UTILS_H
 
 #include <stdio.h>
 #include <assert.h>
@@ -7,20 +7,6 @@
 #include <SDL2/SDL.h>
 
 #include "concole.h"
-
-#define DEFAULT_SCREEN_WIDTH    2048
-#define DEFAULT_SCREEN_HEIGHT   1024
-
-#define CENTERED_WINDOW_OPT     -1
-
-#define FPS_FREQ_MS             100
-
-#ifndef SETTINGS_FILENAME
-#define SETTINGS_FILENAME      "settings.txt"
-#endif /*SETTINGS_FILENAME*/
-
-#define OFFSET_STEP       20
-#define SCALE_STEP        0.1f
 
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
@@ -45,18 +31,6 @@
         }                                                                                           \
     } while(0)
 
-#define SDL_ERROR_HANDLE(call_func, ...)                                                            \
-    do {                                                                                            \
-        int error_handler = call_func;                                                              \
-        if (error_handler)                                                                          \
-        {                                                                                           \
-            fprintf(stderr, "Can't " #call_func". Error: %s\n",                                     \
-                            SDL_GetError());                                                        \
-            __VA_ARGS__                                                                             \
-            return error_handler;                                                                   \
-        }                                                                                           \
-    } while(0)
-
 enum PtrState
 {
     PTR_STATES_VALID   = 0,
@@ -70,4 +44,4 @@ enum PtrState is_invalid_ptr(const void* ptr);
 
 int is_empty_file (FILE* file);
 
-#endif /*MANDELBRAT2_SRC_UTILS_UTILS_H*/
+#endif /*HASH_TABLE_SRC_UTILS_UTILS_H*/
