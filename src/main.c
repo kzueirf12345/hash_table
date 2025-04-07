@@ -18,10 +18,12 @@ int main(const int argc, char* const argv[])
 
     INT_ERROR_HANDLE(init_all(&flags_objs, argc, argv));
 
+    
     printf("Hello, world!\n");
-
+    
     fist_t fist = {};
     FIST_CTOR(&fist, sizeof(size_t), 1);
+    FIST_DUMB(&fist, NULL);
 
     fist_dtor(&fist);
 
@@ -55,13 +57,19 @@ int init_all(flags_objs_t* const flags_objs, const int argc, char* const * argv)
         return EXIT_FAILURE;
     }
 
+    FIST_DUMB_ERROR_HANDLE(fist_dumb_ctor(),
+                                                                                      logger_dtor();
+                                                                        flags_objs_dtor(flags_objs);
+    );
+
     return EXIT_SUCCESS;
 }
 
 int dtor_all(flags_objs_t* const flags_objs)
 {
-    LOGG_ERROR_HANDLE(                                                               logger_dtor());
-    FLAGS_ERROR_HANDLE(                                                flags_objs_dtor(flags_objs));
+    FIST_DUMB_ERROR_HANDLE(                                                      fist_dumb_dtor(););
+    LOGG_ERROR_HANDLE(                                                              logger_dtor(););
+    FLAGS_ERROR_HANDLE(                                               flags_objs_dtor(flags_objs););
 
     return EXIT_SUCCESS;
 }
