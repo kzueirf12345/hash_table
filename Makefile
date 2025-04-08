@@ -81,11 +81,11 @@ FLAGS += $(ADD_FLAGS)
 LIBS = -lm -L./libs/logger -llogger -L./libs/list_on_array -lfist
 
 
-DIRS = utils flags smash_map smash_map/funcs smash_map/verification
+DIRS = utils flags smash_map smash_map/funcs smash_map/verification smash_map/dumb
 BUILD_DIRS = $(DIRS:%=$(BUILD_DIR)/%)
 
 SOURCES = main.c utils/utils.c flags/flags.c smash_map/funcs/funcs.c \
-		  smash_map/verification/verification.c
+		  smash_map/verification/verification.c smash_map/dumb/dumb.c
 
 SOURCES_REL_PATH = $(SOURCES:%=$(SRC_DIR)/%)
 OBJECTS_REL_PATH = $(SOURCES:%.c=$(BUILD_DIR)/%.o)

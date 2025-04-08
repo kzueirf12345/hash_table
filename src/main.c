@@ -20,9 +20,11 @@ int main(const int argc, char* const argv[])
     INT_ERROR_HANDLE(init_all(&flags_objs, argc, argv));
 
     smash_map_t map = {};
-    SMASH_MAP_ERROR_HANDLE(smash_map_ctor(&map, 1024, sizeof(char*), sizeof(size_t)),
+    SMASH_MAP_ERROR_HANDLE(SMASH_MAP_CTOR(&map, 1024, sizeof(char*), sizeof(size_t)),
                                                                               dtor_all(&flags_objs);
     );
+
+    SMASH_MAP_VERIFY(&map, NULL);
 
     smash_map_dtor(&map);
 

@@ -16,13 +16,21 @@
     } while(0)
 
 #define FIST_CAPACITY 10
-enum SmashMapError smash_map_ctor(smash_map_t* const map, const size_t size,
-                                  const size_t key_size, const size_t val_size)
+enum SmashMapError smash_map_ctor_NOT_USE(smash_map_t* const map, const size_t size,
+                                          const size_t key_size, const size_t val_size,
+                                          const char* const name, const place_in_code_t burn_place)
 {
     lassert(!is_invalid_ptr(map), "");
     lassert(size, "");
     lassert(key_size, "");
     lassert(val_size, "");
+    lassert(!is_invalid_ptr(name), "");
+
+    IF_NDEBUG((void)name;)
+    IF_NDEBUG((void)burn_place;)
+
+    IF_DEBUG(map->burn_place = burn_place;)
+    IF_DEBUG(map->name = name;)
 
     map->size = size;
     map->key_size = key_size;

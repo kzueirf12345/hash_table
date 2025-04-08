@@ -13,6 +13,9 @@ typedef struct SmashMapElem
 
 typedef struct SmashMap
 {
+    IF_DEBUG(const char* name;)
+    IF_DEBUG(place_in_code_t burn_place;)
+    
     fist_t* buckets;
     size_t size;
 
