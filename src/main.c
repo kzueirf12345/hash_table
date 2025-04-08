@@ -30,6 +30,8 @@ int main(const int argc, char* const argv[])
 
     SMASH_MAP_VERIFY_ASSERT(&map, NULL);
 
+    SMASH_MAP_DUMB(&map, NULL);
+
     smash_map_dtor(&map);
 
     INT_ERROR_HANDLE(                                                        dtor_all(&flags_objs));
