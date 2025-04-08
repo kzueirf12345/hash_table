@@ -8,6 +8,9 @@
 #include "list_on_array/libfist.h"
 #include "smash_map/funcs/funcs.h"
 
+size_t string_hash_func         (const string_t string);
+size_t string_hash_func_wrapper (const void* string);
+
 int init_all(flags_objs_t* const flags_objs, const int argc, char* const * argv);
 int dtor_all(flags_objs_t* const flags_objs);
 
@@ -20,11 +23,12 @@ int main(const int argc, char* const argv[])
     INT_ERROR_HANDLE(init_all(&flags_objs, argc, argv));
 
     smash_map_t map = {};
-    SMASH_MAP_ERROR_HANDLE(SMASH_MAP_CTOR(&map, 1024, sizeof(char*), sizeof(size_t)),
+    SMASH_MAP_ERROR_HANDLE(
+        SMASH_MAP_CTOR(&map, 1024, sizeof(char*), sizeof(size_t), string_hash_func_wrapper),
                                                                               dtor_all(&flags_objs);
     );
 
-    SMASH_MAP_VERIFY(&map, NULL);
+    SMASH_MAP_VERIFY_ASSERT(&map, NULL);
 
     smash_map_dtor(&map);
 
@@ -34,6 +38,27 @@ int main(const int argc, char* const argv[])
 }
 
 //==================================================================================================
+
+size_t string_hash_func(const string_t string)
+{
+    lassert(!is_invalid_ptr(string.data), "");
+
+    size_t hash_result = 0;
+    for (size_t ind = 0; ind < string.size; ++ind)
+    {
+        hash_result = (size_t)(
+            ((HASH_KEY * hash_result) % INT64_MAX + (size_t)string.data[ind]) % INT64_MAX
+        );
+    }
+    return hash_result;
+}
+
+size_t string_hash_func_wrapper(const void* string)
+{
+    lassert(!is_invalid_ptr(string), "");
+
+    return string_hash_func(*(const string_t*)string);
+}
 
 int logger_init(char* const log_folder);
 

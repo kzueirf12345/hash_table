@@ -11,6 +11,8 @@ typedef struct SmashMapElem
     void* val;
 } smash_map_elem_t;
 
+typedef size_t (*hash_func_t) (const void* const elem);
+
 typedef struct SmashMap
 {
     IF_DEBUG(const char* name;)
@@ -21,6 +23,8 @@ typedef struct SmashMap
 
     size_t key_size;
     size_t val_size;
+
+    hash_func_t hash_func;
 } smash_map_t;
 
 

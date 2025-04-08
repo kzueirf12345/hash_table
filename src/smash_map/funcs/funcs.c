@@ -18,6 +18,7 @@
 #define FIST_CAPACITY 10
 enum SmashMapError smash_map_ctor_NOT_USE(smash_map_t* const map, const size_t size,
                                           const size_t key_size, const size_t val_size,
+                                          hash_func_t hash_func,
                                           const char* const name, const place_in_code_t burn_place)
 {
     lassert(!is_invalid_ptr(map), "");
@@ -25,6 +26,7 @@ enum SmashMapError smash_map_ctor_NOT_USE(smash_map_t* const map, const size_t s
     lassert(key_size, "");
     lassert(val_size, "");
     lassert(!is_invalid_ptr(name), "");
+    lassert(!is_invalid_ptr(hash_func), "");
 
     IF_NDEBUG((void)name;)
     IF_NDEBUG((void)burn_place;)
@@ -32,9 +34,10 @@ enum SmashMapError smash_map_ctor_NOT_USE(smash_map_t* const map, const size_t s
     IF_DEBUG(map->burn_place = burn_place;)
     IF_DEBUG(map->name = name;)
 
-    map->size = size;
-    map->key_size = key_size;
-    map->val_size = val_size;
+    map->size       = size;
+    map->key_size   = key_size;
+    map->val_size   = val_size;
+    map->hash_func  = hash_func;
 
     map->buckets = calloc(size, sizeof(*map->buckets));
 

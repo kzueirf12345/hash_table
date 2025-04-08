@@ -18,6 +18,10 @@ enum SmashMapError
     SMASH_MAP_ERROR_BUCKETS_SIZE_IS_ZERO    = 7,
     SMASH_MAP_ERROR_KEY_SIZE_IS_ZERO        = 8,
     SMASH_MAP_ERROR_VAL_SIZE_IS_ZERO        = 9,
+    SMASH_MAP_ERROR_FIST_ELEM_SIZE_NEQ      = 10,
+    SMASH_MAP_ERROR_NFOUND_ELEM             = 11,
+    SMASH_MAP_ERROR_HASH_FUNC_IS_NULL       = 12,
+    SMASH_MAP_ERROR_HASH_FUNC_IS_INVALID    = 13,
     SMASH_MAP_ERROR_UNKNOWN                 = 32,
 };
 static_assert(SMASH_MAP_ERROR_SUCCESS == 0);
@@ -39,11 +43,11 @@ const char* smash_map_strerror(const enum SmashMapError error);
 
 #ifndef NDEBUG
 
-enum SmashMapError smash_map_verify_NOT_USE(const smash_map_t* const map, elem_to_str_t elem_to_str);
+enum SmashMapError smash_map_verify(const smash_map_t* const map);
 
-#define SMASH_MAP_VERIFY(map, elem_to_str)                                                          \
+#define SMASH_MAP_VERIFY_ASSERT(map, elem_to_str)                                                   \
         do {                                                                                        \
-            const enum SmashMapError error = smash_map_verify_NOT_USE(map, elem_to_str);            \
+            const enum SmashMapError error = smash_map_verify(map);                                 \
             if (error)                                                                              \
             {                                                                                       \
                 SMASH_MAP_DUMB(map, elem_to_str);                                                   \
