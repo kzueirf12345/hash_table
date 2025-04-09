@@ -27,6 +27,7 @@ enum SmashMapError smash_map_ctor_NOT_USE(smash_map_t* const map, const size_t s
 
 void smash_map_dtor(smash_map_t* const map);
 
-enum SmashMapError smash_map_insert(smash_map_t* const map, const smash_map_elem_t elem);
+enum SmashMapError smash_map_insert (smash_map_t* const map, const smash_map_elem_t elem);
+void*              smash_map_get_val(smash_map_t* const map, const void* const       key);
 
 #endif /*HASH_TABLE_SRC_SMASH_MAP_FUNCS_H*/

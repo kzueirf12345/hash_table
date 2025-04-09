@@ -104,6 +104,8 @@ void smash_map_dtor(smash_map_t* const map)
 enum SmashMapError smash_map_insert(smash_map_t* const map, const smash_map_elem_t elem)
 {
     SMASH_MAP_VERIFY_ASSERT(map, map->key_to_str, map->val_to_str);
+    lassert(!is_invalid_ptr(elem.key), "");
+    lassert(!is_invalid_ptr(elem.val), "");
 
     const size_t bucket_ind = map->hash_func(elem.key) % map->size;
     // fprintf(stderr, RED_TEXT("kbucket_ind: %zu\n"), bucket_ind);
@@ -130,4 +132,18 @@ enum SmashMapError smash_map_insert(smash_map_t* const map, const smash_map_elem
     }
 
     return SMASH_MAP_ERROR_SUCCESS;
+}
+
+void* smash_map_get_val(smash_map_t* const map, const void* const key)
+{
+    SMASH_MAP_VERIFY_ASSERT(map, map->key_to_str, map->val_to_str);
+    lassert(!is_invalid_ptr(key), "");
+
+    const size_t bucket_ind = map->hash_func(key) % map->size;
+    const size_t finded_ind = fist_find(&map->buckets[bucket_ind].keys, key);
+
+    if (!finded_ind) 
+        return NULL;
+
+    return map->buckets[bucket_ind].vals.data + finded_ind * map->buckets[bucket_ind].vals.elem_size;
 }
