@@ -11,19 +11,19 @@ const char* smash_map_strerror(const enum SmashMapError error)
     {
         CASE_ENUM_TO_STRING_(SMASH_MAP_ERROR_SUCCESS);
         CASE_ENUM_TO_STRING_(SMASH_MAP_ERROR_STANDARD_ERRNO);
-        CASE_ENUM_TO_STRING_(SMASH_MAP_ERROR_FIST);
+        CASE_ENUM_TO_STRING_(SMASH_MAP_ERROR_FIST_VALS);
+        CASE_ENUM_TO_STRING_(SMASH_MAP_ERROR_FIST_KEYS);
         CASE_ENUM_TO_STRING_(SMASH_MAP_ERROR_MAP_IS_NULL);
         CASE_ENUM_TO_STRING_(SMASH_MAP_ERROR_MAP_IS_INVALID);
         CASE_ENUM_TO_STRING_(SMASH_MAP_ERROR_UNKNOWN);
         CASE_ENUM_TO_STRING_(SMASH_MAP_ERROR_BUCKETS_IS_NULL);
         CASE_ENUM_TO_STRING_(SMASH_MAP_ERROR_BUCKETS_IS_INVALID);
         CASE_ENUM_TO_STRING_(SMASH_MAP_ERROR_BUCKETS_SIZE_IS_ZERO);
-        CASE_ENUM_TO_STRING_(SMASH_MAP_ERROR_KEY_SIZE_IS_ZERO);
-        CASE_ENUM_TO_STRING_(SMASH_MAP_ERROR_VAL_SIZE_IS_ZERO);
         CASE_ENUM_TO_STRING_(SMASH_MAP_ERROR_FIST_ELEM_SIZE_NEQ);
         CASE_ENUM_TO_STRING_(SMASH_MAP_ERROR_NFOUND_ELEM);
         CASE_ENUM_TO_STRING_(SMASH_MAP_ERROR_HASH_FUNC_IS_NULL);
         CASE_ENUM_TO_STRING_(SMASH_MAP_ERROR_HASH_FUNC_IS_INVALID);
+        CASE_ENUM_TO_STRING_(SMASH_MAP_ERROR_FOUND_DUPLICATE);
         default:
             return "UNKNOWN_SMASH_MAP_ERROR";
     }
@@ -70,58 +70,62 @@ enum SmashMapError smash_map_verify(const smash_map_t* const map)
             return SMASH_MAP_ERROR_UNKNOWN;
     }
 
-    if (map->size       == 0) return SMASH_MAP_ERROR_BUCKETS_SIZE_IS_ZERO;
-    if (map->key_size   == 0) return SMASH_MAP_ERROR_KEY_SIZE_IS_ZERO;
-    if (map->val_size   == 0) return SMASH_MAP_ERROR_VAL_SIZE_IS_ZERO;
+    if (map->size == 0) return SMASH_MAP_ERROR_BUCKETS_SIZE_IS_ZERO;
     
+    static_assert(FIST_ERROR_SUCCESS == 0, ""); 
     for (size_t bucket_ind = 0; bucket_ind < map->size; ++bucket_ind)
     {
-        enum FistError error = fist_verify(&map->buckets[bucket_ind]);
-        static_assert(FIST_ERROR_SUCCESS == 0, ""); 
-        if (error)
+        enum FistError error_keys = fist_verify(&map->buckets[bucket_ind].keys);
+        if (error_keys)
         {
-            fprintf(stderr, "Fist error: %s\n", fist_strerror(error));
-            return SMASH_MAP_ERROR_FIST;
+            fprintf(stderr, "Fist error: %s\n", fist_strerror(error_keys));
+            return SMASH_MAP_ERROR_FIST_KEYS;
+        }
+
+        enum FistError error_vals = fist_verify(&map->buckets[bucket_ind].vals);
+        if (error_vals)
+        {
+            fprintf(stderr, "Fist error: %s\n", fist_strerror(error_vals));
+            return SMASH_MAP_ERROR_FIST_VALS;
         }
     }
 
     for (size_t bucket_ind = 0; bucket_ind < map->size; ++bucket_ind)
     {
-        const fist_t fist = map->buckets[bucket_ind];
+        const fist_t keys = map->buckets[bucket_ind].keys;
 
-        for (size_t ind = fist.next[0]; ind != 0; ind = fist.next[ind])
+        for (size_t ind = keys.next[0]; ind != 0; ind = keys.next[ind])
         {
-            const void* const elem = (char*)fist.data + ind * fist.elem_size;
-            bool is_find = false;
+            const void* const key = ((const char*)keys.data + ind * keys.elem_size);
 
             for (size_t bucket_ind_intern = 0; bucket_ind_intern < map->size; ++bucket_ind_intern)
             {
-                const fist_t fist_intern = map->buckets[bucket_ind_intern];
+                const fist_t keys_intern = map->buckets[bucket_ind_intern].keys;
 
-                if (fist_intern.elem_size != fist.elem_size)
-                {
-                    return SMASH_MAP_ERROR_FIST_ELEM_SIZE_NEQ;
-                }
-
-                const size_t elem_size = fist.elem_size;
-
-                for (size_t ind_intern = fist.next[0]; 
+                for (size_t ind_intern = keys_intern.next[0]; 
                      ind_intern != 0; 
-                     ind_intern = fist.next[ind_intern])
+                     ind_intern = keys_intern.next[ind_intern])
                 {
-                    const void* const elem_intern 
-                        = (char*)fist_intern.data + ind_intern * elem_size;
+                    const void* const key_intern 
+                        = (const char*)keys_intern.data + ind * keys_intern.elem_size;
 
-                    if (memcmp(elem_intern, elem, elem_size) == 0)
+                    if (key_intern == key || !key_intern || !key )
                     {
-                        is_find = true; 
+                        continue;
+                    }
+
+                    // fprintf(stderr, RED_TEXT("key: %s; key_intern: %s\n"), 
+                    //             (const char*)key, (const char*)key_intern);
+
+                    if (keys_intern.elem_size == keys.elem_size
+                     && memcmp(key, key_intern, keys.elem_size) == 0)
+                    {
+                        fprintf(stderr, RED_TEXT("key: %s; key_intern: %s\n"), 
+                                (const char*)key, (const char*)key_intern);
+                                
+                        return SMASH_MAP_ERROR_FOUND_DUPLICATE;
                     }
                 }
-            }
-
-            if (!is_find)
-            {
-                return SMASH_MAP_ERROR_NFOUND_ELEM;
             }
         }
     }

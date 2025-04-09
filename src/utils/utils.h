@@ -10,13 +10,6 @@
 
 #define HASH_KEY 31ul
 
-typedef struct String
-{
-    char* data;
-    size_t size;
-} string_t;
-
-
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
 

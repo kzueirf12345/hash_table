@@ -10,18 +10,18 @@ enum SmashMapError
 {
     SMASH_MAP_ERROR_SUCCESS                 = 0,
     SMASH_MAP_ERROR_STANDARD_ERRNO          = 1,
-    SMASH_MAP_ERROR_FIST                    = 2,
+    SMASH_MAP_ERROR_FIST_KEYS               = 2,
     SMASH_MAP_ERROR_MAP_IS_NULL             = 3,
     SMASH_MAP_ERROR_MAP_IS_INVALID          = 4,
     SMASH_MAP_ERROR_BUCKETS_IS_NULL         = 5,
     SMASH_MAP_ERROR_BUCKETS_IS_INVALID      = 6,
     SMASH_MAP_ERROR_BUCKETS_SIZE_IS_ZERO    = 7,
-    SMASH_MAP_ERROR_KEY_SIZE_IS_ZERO        = 8,
-    SMASH_MAP_ERROR_VAL_SIZE_IS_ZERO        = 9,
+    SMASH_MAP_ERROR_FIST_VALS               = 8,
     SMASH_MAP_ERROR_FIST_ELEM_SIZE_NEQ      = 10,
     SMASH_MAP_ERROR_NFOUND_ELEM             = 11,
     SMASH_MAP_ERROR_HASH_FUNC_IS_NULL       = 12,
     SMASH_MAP_ERROR_HASH_FUNC_IS_INVALID    = 13,
+    SMASH_MAP_ERROR_FOUND_DUPLICATE         = 14,
     SMASH_MAP_ERROR_UNKNOWN                 = 32,
 };
 static_assert(SMASH_MAP_ERROR_SUCCESS == 0);
@@ -45,19 +45,19 @@ const char* smash_map_strerror(const enum SmashMapError error);
 
 enum SmashMapError smash_map_verify(const smash_map_t* const map);
 
-#define SMASH_MAP_VERIFY_ASSERT(map, elem_to_str)                                                   \
+#define SMASH_MAP_VERIFY_ASSERT(map, key_to_str, val_to_str)                                        \
         do {                                                                                        \
             const enum SmashMapError error = smash_map_verify(map);                                 \
             if (error)                                                                              \
             {                                                                                       \
-                SMASH_MAP_DUMB(map, elem_to_str);                                                   \
+                SMASH_MAP_DUMB(map, key_to_str, val_to_str);                                        \
                 lassert(false, "Smash_map error: %s", smash_map_strerror(error));                   \
             }                                                                                       \
         } while(0)
 
 #else /*NDEBUG*/
 
-#define SMASH_MAP_VERIFY(map, elem_to_str) do {} while(0)
+#define SMASH_MAP_VERIFY(map, key_to_str, val_to_str) do {} while(0)
 
 #endif /*NDEBUG*/
 

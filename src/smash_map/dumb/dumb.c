@@ -23,7 +23,7 @@ static const char* const HTML_INTRO_ =
     } while(0)
 
 void smash_map_dumb_NOT_USE(const smash_map_t* const map, const place_in_code_t call_place, 
-                            elem_to_str_t elem_to_str)
+                            elem_to_str_t key_to_str, elem_to_str_t val_to_str)
 {
     if (fist_is_empty_file((*DUMBER_get_html_file())) <= 0) 
         fprintf((*DUMBER_get_html_file()), HTML_INTRO_);
@@ -67,8 +67,6 @@ void smash_map_dumb_NOT_USE(const smash_map_t* const map, const place_in_code_t 
 
     DUMB_AND_FPRINTF_("\n");
     DUMB_AND_FPRINTF_("\tsize      = %zu\n",   map->size);
-    DUMB_AND_FPRINTF_("\tkey_size  = %zu\n",   map->key_size);
-    DUMB_AND_FPRINTF_("\tval_size  = %zu\n\n", map->val_size);
 
     DUMB_AND_FPRINTF_("\thash_func = %p\n",    map->hash_func);
     DUMB_AND_FPRINTF_("\tbuckets   = %p\n",    map->buckets);
@@ -77,6 +75,9 @@ void smash_map_dumb_NOT_USE(const smash_map_t* const map, const place_in_code_t 
     for (size_t bucket_ind = 0; bucket_ind < map->size; ++bucket_ind)
     {
         DUMB_AND_FPRINTF_("BUCKET INDEX: %zu\n", bucket_ind);
-        FIST_DUMB(&map->buckets[bucket_ind], elem_to_str);
+        DUMB_AND_FPRINTF_("KEYS\n");
+        FIST_DUMB(&map->buckets[bucket_ind].keys, key_to_str);
+        DUMB_AND_FPRINTF_("VALS\n");
+        FIST_DUMB(&map->buckets[bucket_ind].vals, val_to_str);
     }
 }
