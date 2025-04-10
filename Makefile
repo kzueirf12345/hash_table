@@ -29,7 +29,7 @@ FLAGS =	-Wall -Wextra -Waggressive-loop-optimizations \
 		-Wundef -Wunreachable-code -Wunused -Wvariadic-macros \
 		-Wno-missing-field-initializers -Wno-narrowing -Wno-varargs \
 		-Wstack-protector -fcheck-new -fstack-protector -fstrict-overflow \
-		-fno-omit-frame-pointer -Wlarger-than=81920 -Wstack-usage=81920 -pie \
+		-fno-omit-frame-pointer -Wlarger-than=8192000 -Wstack-usage=8192000 -pie \
 		-fPIE -Werror=vla -flto-odr-type-merging\
 
 SANITIZER = -fsanitize=address,alignment,bool,bounds,enum,float-cast-overflow,float-divide-by-zero,$\
@@ -81,11 +81,11 @@ FLAGS += $(ADD_FLAGS)
 LIBS = -lm -L./libs/logger -llogger -L./libs/list_on_array -lfist
 
 
-DIRS = utils flags smash_map smash_map/funcs smash_map/verification smash_map/dumb
+DIRS = utils flags smash_map smash_map/funcs smash_map/verification smash_map/dumb test
 BUILD_DIRS = $(DIRS:%=$(BUILD_DIR)/%)
 
 SOURCES = main.c utils/utils.c flags/flags.c smash_map/funcs/funcs.c \
-		  smash_map/verification/verification.c smash_map/dumb/dumb.c
+		  smash_map/verification/verification.c smash_map/dumb/dumb.c test/test.c test/utils.c
 
 SOURCES_REL_PATH = $(SOURCES:%=$(SRC_DIR)/%)
 OBJECTS_REL_PATH = $(SOURCES:%.c=$(BUILD_DIR)/%.o)
@@ -158,3 +158,5 @@ clean_bin:
 
 clean_gcda:
 	sudo find ./ -type f -name "*.gcda" -exec rm -f {} \;
+
+# make OPTS="-i 3 ./assets/onegin.txt ./assets/onegin_out.txt ./assets/hobbit.txt ./assets/hobbit_out.txt ./assets/wap.txt ./assets/wap_out.txt" DEBUG_=0

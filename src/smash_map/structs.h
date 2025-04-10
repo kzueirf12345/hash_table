@@ -21,8 +21,8 @@ typedef size_t (*hash_func_t) (const void* const elem);
 
 typedef struct SmashMap
 {
-    IF_DEBUG(const char* name;)
-    IF_DEBUG(place_in_code_t burn_place;)
+    const char* name;
+    place_in_code_t burn_place;
     
     bucket_t* buckets;
     size_t size;

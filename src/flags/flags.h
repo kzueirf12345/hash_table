@@ -26,9 +26,17 @@ const char* flags_strerror(const enum FlagsError error);
         }                                                                                           \
     } while(0)
 
+#ifndef MAX_INOUT_FILES_CNT
+#define MAX_INOUT_FILES_CNT 10
+#endif /*MAX_INOUT_FILES_CNT*/
+
 typedef struct FlagsObjs
 {
     char log_folder         [FILENAME_MAX + 1];
+    char input_files        [MAX_INOUT_FILES_CNT][FILENAME_MAX + 1];
+    char output_files       [MAX_INOUT_FILES_CNT][FILENAME_MAX + 1];
+    size_t cnt_inout_files;
+
 } flags_objs_t;
 
 enum FlagsError flags_objs_ctor (flags_objs_t* const flags_objs);

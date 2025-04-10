@@ -41,23 +41,23 @@ const char* smash_map_strerror(const enum SmashMapError error);
     } while(0)
 
 
-#ifndef NDEBUG
-
 enum SmashMapError smash_map_verify(const smash_map_t* const map);
 
-#define SMASH_MAP_VERIFY_ASSERT(map, key_to_str, val_to_str)                                        \
+#ifndef NDEBUG
+
+#define SMASH_MAP_VERIFY_ASSERT(map)                                                                \
         do {                                                                                        \
             const enum SmashMapError error = smash_map_verify(map);                                 \
             if (error)                                                                              \
             {                                                                                       \
-                SMASH_MAP_DUMB(map, key_to_str, val_to_str);                                        \
+                SMASH_MAP_DUMB(map);                                                                \
                 lassert(false, "Smash_map error: %s", smash_map_strerror(error));                   \
             }                                                                                       \
         } while(0)
 
 #else /*NDEBUG*/
 
-#define SMASH_MAP_VERIFY(map, key_to_str, val_to_str) do {} while(0)
+#define SMASH_MAP_VERIFY_ASSERT(map) do {} while(0)
 
 #endif /*NDEBUG*/
 

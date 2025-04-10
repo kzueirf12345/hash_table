@@ -29,5 +29,6 @@ void smash_map_dtor(smash_map_t* const map);
 
 enum SmashMapError smash_map_insert (smash_map_t* const map, const smash_map_elem_t elem);
 void*              smash_map_get_val(smash_map_t* const map, const void* const       key);
+enum SmashMapError smash_map_print  (const smash_map_t* const map, FILE* const file);
 
 #endif /*HASH_TABLE_SRC_SMASH_MAP_FUNCS_H*/

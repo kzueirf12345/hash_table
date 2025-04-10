@@ -107,7 +107,7 @@ enum SmashMapError smash_map_verify(const smash_map_t* const map)
                      ind_intern = keys_intern.next[ind_intern])
                 {
                     const void* const key_intern 
-                        = (const char*)keys_intern.data + ind * keys_intern.elem_size;
+                        = (const char*)keys_intern.data + ind_intern * keys_intern.elem_size;
 
                     if (key_intern == key || !key_intern || !key )
                     {

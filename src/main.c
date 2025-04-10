@@ -8,12 +8,7 @@
 #include "list_on_array/libfist.h"
 #include "smash_map/funcs/funcs.h"
 #include "smash_map/verification/verification.h"
-
-size_t string_hash_func     (const void* const string);
-int smash_map_key_to_str    (const void* const elem, const size_t   elem_size,
-                             char* const *     str,  const size_t mx_str_size);
-int smash_map_val_to_str    (const void* const elem, const size_t   elem_size,
-                             char* const *     str,  const size_t mx_str_size);
+#include "test/test.h"
 
 int init_all(flags_objs_t* const flags_objs, const int argc, char* const * argv);
 int dtor_all(flags_objs_t* const flags_objs);
@@ -26,35 +21,13 @@ int main(const int argc, char* const argv[])
 
     INT_ERROR_HANDLE(init_all(&flags_objs, argc, argv));
 
-    smash_map_t map = {};
-    SMASH_MAP_ERROR_HANDLE(
-        SMASH_MAP_CTOR(&map, 
-                       11, 
-                       32, 
-                       sizeof(size_t),
-                       string_hash_func,
-                       smash_map_key_to_str,
-                       smash_map_val_to_str
-        ),
-                                                                              dtor_all(&flags_objs);
-    );
-
-    for (size_t i = 0; i < 10; ++i)
+    for (size_t test_num = 0; test_num < flags_objs.cnt_inout_files; ++test_num)
     {
-        char string[32] = "sosal";
         SMASH_MAP_ERROR_HANDLE(
-            smash_map_insert(&map, (smash_map_elem_t){.key = string, .val = &i}),
+            print_freq_dict(flags_objs.input_files[test_num], flags_objs.output_files[test_num]),
                                                                               dtor_all(&flags_objs);
         );
     }
-
-
-    SMASH_MAP_VERIFY_ASSERT(&map, map.key_to_str, map.val_to_str);
-
-    SMASH_MAP_DUMB(&map, map.key_to_str, map.val_to_str);
-
-    smash_map_dtor(&map);
-
 
     INT_ERROR_HANDLE(                                                        dtor_all(&flags_objs));
 
@@ -63,72 +36,6 @@ int main(const int argc, char* const argv[])
 
 //==================================================================================================
 
-
-size_t string_hash_func(const void* const string)
-{
-    lassert(!is_invalid_ptr(string), "");
-
-    size_t hash_result = 0;
-    for (const char* it = (const char*)string; *it; ++it)
-    {
-        hash_result = (size_t)(((HASH_KEY * hash_result) % INT64_MAX + (size_t)*it) % INT64_MAX);
-    }
-    return hash_result;
-}
-
-int smash_map_key_to_str   (const void* const elem, const size_t   elem_size,
-                            char* const *     str,  const size_t mx_str_size)
-{
-    if (is_invalid_ptr(str))  return -1;
-    if (is_invalid_ptr(*str)) return -1;
-    (void)elem_size;
-
-    if (elem && *(const char*)elem)
-    {
-        if (snprintf(*str, mx_str_size, "%s", (const char*)elem) <= 0)
-        {
-            perror("Can't snprintf key to str");
-            return -1;
-        }
-    }
-    else
-    {
-        if (snprintf(*str, mx_str_size, "(nul)") < 0)
-        {
-            perror("Can't snprintf key (nul) to str");
-            return -1;
-        }
-    }
-
-    return 0;
-}
-int smash_map_val_to_str   (const void* const elem, const size_t   elem_size,
-                            char* const *     str,  const size_t mx_str_size)
-{
-    if (is_invalid_ptr(str))  return -1;
-    if (is_invalid_ptr(*str)) return -1;
-    (void)elem_size;
-
-    if (elem)
-    {
-        if (snprintf(*str, mx_str_size, "%zu", *(const size_t*)elem) <= 0)
-        {
-            perror("Can't snprintf val to str");
-            return -1;
-        }
-    
-    }
-    else
-    {
-        if (snprintf(*str, mx_str_size, "(nul)") < 0)
-        {
-            perror("Can't snprintf key (nul) to str");
-            return -1;
-        }
-    }
-
-    return 0;
-}
 
 int logger_init(char* const log_folder);
 

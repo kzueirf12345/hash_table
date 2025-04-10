@@ -31,6 +31,8 @@ enum FlagsError flags_objs_ctor(flags_objs_t* const flags_objs)
         return FLAGS_ERROR_SUCCESS;
     }
 
+    flags_objs->cnt_inout_files = 0;
+
     return FLAGS_ERROR_SUCCESS;
 }
 
@@ -50,7 +52,7 @@ enum FlagsError flags_processing(flags_objs_t* const flags_objs,
     lassert(argc, "");
 
     int getopt_rez = 0;
-    while ((getopt_rez = getopt(argc, argv, "l:")) != -1)
+    while ((getopt_rez = getopt(argc, argv, "l:i:")) != -1)
     {
         switch (getopt_rez)
         {
@@ -60,6 +62,41 @@ enum FlagsError flags_processing(flags_objs_t* const flags_objs,
                 {
                     perror("Can't strncpy flags_objs->log_folder");
                     return FLAGS_ERROR_FAILURE;
+                }
+
+                break;
+            }
+
+            case 'i':
+            {
+                flags_objs->cnt_inout_files = (size_t)atoll(optarg);
+
+                if (flags_objs->cnt_inout_files     == 0 
+                 || flags_objs->cnt_inout_files     >  MAX_INOUT_FILES_CNT)
+                {
+                    fprintf(stderr, "Error cnt_inout_files value\n");
+                    return FLAGS_ERROR_FAILURE;
+                }
+
+                if ((size_t)argc - 2ul < flags_objs->cnt_inout_files)
+                {
+                    fprintf(stderr, "Few arguments in command line\n");
+                    return FLAGS_ERROR_FAILURE;
+                }
+
+                for (size_t cnt = 0; cnt < flags_objs->cnt_inout_files; ++cnt)
+                {
+                    if (!strncpy(flags_objs->input_files[cnt], argv[optind++], FILENAME_MAX))
+                    {
+                        perror("Can't strncpy flags_objs->input_files[i]");
+                        return FLAGS_ERROR_FAILURE;
+                    }
+
+                    if (!strncpy(flags_objs->output_files[cnt], argv[optind++], FILENAME_MAX))
+                    {
+                        perror("Can't strncpy flags_objs->output_files[i]");
+                        return FLAGS_ERROR_FAILURE;
+                    }
                 }
 
                 break;

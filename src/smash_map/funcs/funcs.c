@@ -90,7 +90,7 @@ enum SmashMapError smash_map_ctor_NOT_USE(smash_map_t* const map, const size_t s
 
 void smash_map_dtor(smash_map_t* const map)
 {
-    SMASH_MAP_VERIFY_ASSERT(map, map->key_to_str, map->val_to_str);
+    SMASH_MAP_VERIFY_ASSERT(map);
 
     for (size_t bucket_ind = 0; bucket_ind < map->size; ++bucket_ind)
     {
@@ -103,14 +103,12 @@ void smash_map_dtor(smash_map_t* const map)
 
 enum SmashMapError smash_map_insert(smash_map_t* const map, const smash_map_elem_t elem)
 {
-    SMASH_MAP_VERIFY_ASSERT(map, map->key_to_str, map->val_to_str);
+    SMASH_MAP_VERIFY_ASSERT(map);
     lassert(!is_invalid_ptr(elem.key), "");
     lassert(!is_invalid_ptr(elem.val), "");
 
     const size_t bucket_ind = map->hash_func(elem.key) % map->size;
-    // fprintf(stderr, RED_TEXT("kbucket_ind: %zu\n"), bucket_ind);
-
-    size_t finded_ind = fist_find(&map->buckets[bucket_ind].keys, elem.key);
+    const size_t finded_ind = fist_find(&map->buckets[bucket_ind].keys, elem.key);
 
     if (!finded_ind)
     {
@@ -136,7 +134,7 @@ enum SmashMapError smash_map_insert(smash_map_t* const map, const smash_map_elem
 
 void* smash_map_get_val(smash_map_t* const map, const void* const key)
 {
-    SMASH_MAP_VERIFY_ASSERT(map, map->key_to_str, map->val_to_str);
+    SMASH_MAP_VERIFY_ASSERT(map);
     lassert(!is_invalid_ptr(key), "");
 
     const size_t bucket_ind = map->hash_func(key) % map->size;
@@ -145,5 +143,65 @@ void* smash_map_get_val(smash_map_t* const map, const void* const key)
     if (!finded_ind) 
         return NULL;
 
-    return map->buckets[bucket_ind].vals.data + finded_ind * map->buckets[bucket_ind].vals.elem_size;
+    return (char*)map->buckets[bucket_ind].vals.data 
+                + finded_ind * map->buckets[bucket_ind].vals.elem_size;
 }
+
+#define MAX_ELEM_STR_SIZE 256
+enum SmashMapError smash_map_print(const smash_map_t* const map, FILE* const file)
+{
+    SMASH_MAP_VERIFY_ASSERT(map);
+    lassert(!is_invalid_ptr(file), "");
+
+    char* elem_str = calloc(MAX_ELEM_STR_SIZE + 1, sizeof(*elem_str));
+
+    if (!elem_str)
+    {
+        perror("Can't calloc elem_str");
+        return SMASH_MAP_ERROR_STANDARD_ERRNO;
+    }
+
+    for (size_t bucket_ind = 0; bucket_ind < map->size; ++bucket_ind)
+    {
+        const fist_t keys = map->buckets[bucket_ind].keys;
+        const fist_t vals = map->buckets[bucket_ind].vals;
+
+        for (size_t elem_ind = keys.next[0]; elem_ind != 0; elem_ind = keys.next[elem_ind])
+        {
+            INT_ERROR_HANDLE(
+                map->key_to_str(
+                    (char*)keys.data + elem_ind * keys.elem_size, 
+                    keys.elem_size, 
+                    &elem_str, 
+                    MAX_ELEM_STR_SIZE
+                )
+            );
+
+            if (fprintf(file, "%s: ", elem_str) <= 0)
+            {
+                perror("Can't fprintf elem_str key");
+                return SMASH_MAP_ERROR_STANDARD_ERRNO;
+            }
+
+            INT_ERROR_HANDLE(
+                map->val_to_str(
+                    (char*)vals.data + elem_ind * vals.elem_size, 
+                    vals.elem_size, 
+                    &elem_str, 
+                    MAX_ELEM_STR_SIZE
+                )
+            );
+
+            if (fprintf(file, "%s\n", elem_str) <= 0)
+            {
+                perror("Can't fprintf elem_str val");
+                return SMASH_MAP_ERROR_STANDARD_ERRNO;
+            }
+        }
+    }
+
+    free(elem_str); IF_DEBUG(elem_str = NULL);
+
+    return SMASH_MAP_ERROR_SUCCESS;
+}
+#undef MAX_ELEM_STR_SIZE
