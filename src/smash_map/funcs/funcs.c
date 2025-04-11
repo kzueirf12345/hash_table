@@ -29,6 +29,8 @@
     } while(0)
 
 
+void smash_map_dtor_fists_(smash_map_t* const map, const size_t fists_cnt);
+
 #define FIST_CAPACITY 10
 enum SmashMapError smash_map_ctor_NOT_USE(smash_map_t* const map, const size_t size,
                                           const size_t key_size, const size_t val_size,
@@ -64,21 +66,13 @@ enum SmashMapError smash_map_ctor_NOT_USE(smash_map_t* const map, const size_t s
     {
         FIST_ERROR_HANDLE_KEYS_(
             FIST_CTOR(&map->buckets[bucket_ind].keys, key_size, FIST_CAPACITY),
-            for (size_t ctored_bucket_ind = 0; ctored_bucket_ind < bucket_ind; ++ctored_bucket_ind)
-            {
-                fist_dtor(&map->buckets[ctored_bucket_ind].keys);
-                fist_dtor(&map->buckets[ctored_bucket_ind].vals);
-            }
+            smash_map_dtor_fists_(&map, bucket_ind);
             free(map->buckets);
         );
 
         FIST_ERROR_HANDLE_VALS_(
             FIST_CTOR(&map->buckets[bucket_ind].vals, val_size, FIST_CAPACITY),
-            for (size_t ctored_bucket_ind = 0; ctored_bucket_ind < bucket_ind; ++ctored_bucket_ind)
-            {
-                fist_dtor(&map->buckets[ctored_bucket_ind].keys);
-                fist_dtor(&map->buckets[ctored_bucket_ind].vals);
-            }
+            smash_map_dtor_fists_(&map, bucket_ind);
             fist_dtor(&map->buckets[bucket_ind].keys);
             free(map->buckets);
         );
@@ -92,13 +86,20 @@ void smash_map_dtor(smash_map_t* const map)
 {
     SMASH_MAP_VERIFY_ASSERT(map);
 
-    for (size_t bucket_ind = 0; bucket_ind < map->size; ++bucket_ind)
+    smash_map_dtor_fists_(&map, map->size);
+    
+    free(map->buckets); IF_DEBUG(map->buckets = NULL);
+}
+
+void smash_map_dtor_fists_(smash_map_t* const map, const size_t fists_cnt)
+{
+    lassert(!is_invalid_ptr(map), "");
+
+    for (size_t bucket_ind = 0; bucket_ind < fists_cnt; ++bucket_ind)
     {
         fist_dtor(&map->buckets[bucket_ind].keys);
         fist_dtor(&map->buckets[bucket_ind].vals);
     }
-    
-    free(map->buckets); IF_DEBUG(map->buckets = NULL);
 }
 
 enum SmashMapError smash_map_insert(smash_map_t* const map, const smash_map_elem_t elem)
@@ -114,8 +115,6 @@ enum SmashMapError smash_map_insert(smash_map_t* const map, const smash_map_elem
     {
         FIST_ERROR_HANDLE_KEYS_(fist_push(&map->buckets[bucket_ind].keys, 0, elem.key));
         FIST_ERROR_HANDLE_VALS_(fist_push(&map->buckets[bucket_ind].vals, 0, elem.val));
-
-        // fprintf(stderr, RED_TEXT("keys_size: %zu\n"), map->buckets[bucket_ind].keys.size);
     }
     else
     {
