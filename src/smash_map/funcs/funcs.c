@@ -66,13 +66,13 @@ enum SmashMapError smash_map_ctor_NOT_USE(smash_map_t* const map, const size_t s
     {
         FIST_ERROR_HANDLE_KEYS_(
             FIST_CTOR(&map->buckets[bucket_ind].keys, key_size, FIST_CAPACITY),
-            smash_map_dtor_fists_(&map, bucket_ind);
+            smash_map_dtor_fists_(map, bucket_ind);
             free(map->buckets);
         );
 
         FIST_ERROR_HANDLE_VALS_(
             FIST_CTOR(&map->buckets[bucket_ind].vals, val_size, FIST_CAPACITY),
-            smash_map_dtor_fists_(&map, bucket_ind);
+            smash_map_dtor_fists_(map, bucket_ind);
             fist_dtor(&map->buckets[bucket_ind].keys);
             free(map->buckets);
         );
@@ -86,7 +86,7 @@ void smash_map_dtor(smash_map_t* const map)
 {
     SMASH_MAP_VERIFY_ASSERT(map);
 
-    smash_map_dtor_fists_(&map, map->size);
+    smash_map_dtor_fists_(map, map->size);
     
     free(map->buckets); IF_DEBUG(map->buckets = NULL);
 }

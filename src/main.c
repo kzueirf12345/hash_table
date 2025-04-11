@@ -44,11 +44,11 @@ int init_all(flags_objs_t* const flags_objs, const int argc, char* const * argv)
     lassert(argc, "");
     lassert(!is_invalid_ptr(argv), "");
 
-    if (!setlocale(LC_ALL, "ru_RU.utf8"))
-    {
-        fprintf(stderr, "Can't setlocale\n");
-        return EXIT_FAILURE;
-    }
+    // if (!setlocale(LC_ALL, "ru_RU.utf8"))
+    // {
+    //     fprintf(stderr, "Can't setlocale\n");
+    //     return EXIT_FAILURE;
+    // }
 
     FLAGS_ERROR_HANDLE(flags_objs_ctor (flags_objs));
     FLAGS_ERROR_HANDLE(flags_processing(flags_objs, argc, argv));

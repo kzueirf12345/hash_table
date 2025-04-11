@@ -12,7 +12,7 @@ size_t string_hash_func(const void* const string)
     size_t hash_result = 0;
     for (const char* it = (const char*)string; *it; ++it)
     {
-        hash_result = (size_t)(((HASH_KEY * hash_result) % INT64_MAX + (size_t)*it) % INT64_MAX);
+        hash_result = HASH_KEY * hash_result + (size_t)*it;
     }
     return hash_result;
 }

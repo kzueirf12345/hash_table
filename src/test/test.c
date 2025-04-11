@@ -4,6 +4,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <valgrind/callgrind.h>
 
 #include "test/test.h"
 #include "utils/utils.h"
@@ -41,6 +42,8 @@ enum SmashMapError print_freq_dict(const char* const input_filename,
         ),
         munmap(text, text_size);
     );
+
+    CALLGRIND_START_INSTRUMENTATION;
 
     char   key_buffer[MAX_WORD_SIZE] = {};
     size_t key_buffer_counter            = 0;
@@ -91,6 +94,8 @@ enum SmashMapError print_freq_dict(const char* const input_filename,
             
         }
     }
+
+    CALLGRIND_STOP_INSTRUMENTATION;
 
     FILE* output_file = fopen(output_filename, "wb");
     if (!output_file)

@@ -1,7 +1,9 @@
 .PHONY: all build clean rebuild \
 		logger_build logger_clean logger_rebuild \
 		fist_build fist_clean fist_rebuild \
-		clean_all clean_log clean_out clean_obj clean_deps clean_txt clean_bin
+		clean_all clean_log clean_out clean_obj clean_deps clean_txt clean_bin \
+		profile cheack_leaks \
+		set_freq reset_freq
 
 
 PROJECT_NAME = hash_table
@@ -11,7 +13,7 @@ SRC_DIR = ./src
 COMPILER ?= gcc
 
 DEBUG_ ?= 1
-USE_AVX2 ?= 1
+USE_AVX2 ?= 0
 
 ifeq ($(origin FLAGS), undefined)
 
@@ -159,4 +161,29 @@ clean_bin:
 clean_gcda:
 	sudo find ./ -type f -name "*.gcda" -exec rm -f {} \;
 
-# make OPTS="-i 3 ./assets/onegin.txt ./assets/onegin_out.txt ./assets/hobbit.txt ./assets/hobbit_out.txt ./assets/wap.txt ./assets/wap_out.txt" DEBUG_=0
+
+OPTS ?= -i 3 \
+		./assets/wap.txt ./assets/wap_out.txt \
+		./assets/potter.txt ./assets/potter_out.txt \
+		./assets/lorem.txt ./assets/lorem_out.txt
+
+check_leaks: build
+	make rebuild ADD_OPTS="-g" DEBUG_=0 ;
+	valgrind --leak-check=full --show-leak-kinds=all ./$(PROJECT_NAME).out $(OPTS)
+
+PROFILE_NUM ?= 1
+
+profile:
+	make set_freq ;
+	make rebuild ADD_OPTS="-g" DEBUG_=0 ;
+	valgrind --tool=callgrind --callgrind-out-file=profile$(PROFILE_NUM).out --dump-instr=yes ./$(PROJECT_NAME).out $(OPTS) ;
+	kcachegrind profile$(PROFILE_NUM).out ;
+	make reset_freq 
+
+set_freq:
+	sudo cpupower frequency-set --max 2.4GHz ;
+	sudo cpupower frequency-set --min 2.4GHz
+
+reset_freq:
+	sudo cpupower frequency-set --max 4GHz ;
+	sudo cpupower frequency-set --min 0.1GHz
