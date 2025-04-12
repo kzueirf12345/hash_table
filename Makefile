@@ -74,6 +74,8 @@ FLAGS += $(OPTIMIZE_LVL)
 
 ifneq ($(USE_AVX2),0)
 FLAGS += -mavx -mavx2 -march=native -fopenmp
+else
+FLAGS += -mno-avx -mno-avx2
 endif
 
 endif
@@ -162,20 +164,20 @@ clean_gcda:
 	sudo find ./ -type f -name "*.gcda" -exec rm -f {} \;
 
 
-OPTS ?= -i 3 \
+OPTS ?= -i 2 \
 		./assets/wap.txt ./assets/wap_out.txt \
 		./assets/potter.txt ./assets/potter_out.txt \
 		./assets/lorem.txt ./assets/lorem_out.txt
 
 check_leaks: build
-	make rebuild ADD_OPTS="-g" DEBUG_=0 ;
-	valgrind --leak-check=full --show-leak-kinds=all ./$(PROJECT_NAME).out $(OPTS)
+	make rebuild USE_AVX2=$(USE_AVX2) ADD_FLAGS="-g" DEBUG_=0 ;
+	valgrind --track-origins=yes --leak-check=full --show-leak-kinds=all ./$(PROJECT_NAME).out $(OPTS)
 
 PROFILE_NUM ?= 1
 
 profile:
 	make set_freq ;
-	make rebuild ADD_OPTS="-g" DEBUG_=0 ;
+	make USE_AVX2=$(USE_AVX2) ADD_FLAGS="-g" DEBUG_=0 rebuild;
 	valgrind --tool=callgrind --callgrind-out-file=profile$(PROFILE_NUM).out --dump-instr=yes ./$(PROJECT_NAME).out $(OPTS) ;
 	kcachegrind profile$(PROFILE_NUM).out ;
 	make reset_freq 
@@ -187,3 +189,5 @@ set_freq:
 reset_freq:
 	sudo cpupower frequency-set --max 4GHz ;
 	sudo cpupower frequency-set --min 0.1GHz
+
+# -i 3 ./assets/wap.txt ./assets/wap_out.txt ./assets/potter.txt ./assets/potter_out.txt ./assets/lorem.txt ./assets/lorem_out.txt

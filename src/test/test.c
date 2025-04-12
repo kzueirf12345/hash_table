@@ -5,6 +5,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <valgrind/callgrind.h>
+#include <valgrind/valgrind.h>
 
 #include "test/test.h"
 #include "utils/utils.h"
@@ -29,7 +30,7 @@ enum SmashMapError print_freq_dict(const char* const input_filename,
         return SMASH_MAP_ERROR_STANDARD_ERRNO;
     }
 
-    smash_map_t map = {};
+    smash_map_t map;
     SMASH_MAP_ERROR_HANDLE(
         SMASH_MAP_CTOR(
             &map, 
@@ -45,8 +46,8 @@ enum SmashMapError print_freq_dict(const char* const input_filename,
 
     CALLGRIND_START_INSTRUMENTATION;
 
-    char   key_buffer[MAX_WORD_SIZE] = {};
-    size_t key_buffer_counter            = 0;
+    char __attribute__((aligned(32))) key_buffer[MAX_WORD_SIZE] = {};
+    size_t key_buffer_counter = 0;
     for (size_t chr_ind = 0; chr_ind < text_size; ++chr_ind)
     {
         const char chr = text[chr_ind];
