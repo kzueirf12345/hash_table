@@ -31,7 +31,7 @@
 
 void smash_map_dtor_fists_(smash_map_t* const map, const size_t fists_cnt);
 
-#define FIST_CAPACITY 10
+#define FIST_CAPACITY 15
 enum SmashMapError smash_map_ctor_NOT_USE(smash_map_t* const map, const size_t size,
                                           const size_t key_size, const size_t val_size,
                                           hash_func_t hash_func,

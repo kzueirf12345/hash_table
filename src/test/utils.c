@@ -9,12 +9,19 @@ size_t string_hash_func(const void* const string)
 {
     lassert(!is_invalid_ptr(string), "");
 
-    size_t hash_result = 0;
-    for (const char* it = (const char*)string; *it; ++it)
-    {
-        hash_result = HASH_KEY * hash_result + (size_t)*it;
-    }
-    return hash_result;
+    size_t hash_res = 0;
+
+    asm (
+        "crc32q (%1), %0\n\t"               // CRC64 first  64bit
+        "crc32q 8(%1), %0\n\t"              // CRC64 second 64bit
+        "crc32q 16(%1), %0\n\t"             // CRC64 third  64bit
+        "crc32q 24(%1), %0\n\t"             // CRC64 fourth 64bit
+        : "+r"(hash_res)
+        : "r" (string)
+        : "memory"
+    );
+
+    return hash_res;
 }
 
 int smash_map_key_to_str   (const void* const elem, const size_t   elem_size,
