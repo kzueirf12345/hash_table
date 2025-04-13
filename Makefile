@@ -73,9 +73,9 @@ endif
 FLAGS += $(OPTIMIZE_LVL)
 
 ifneq ($(USE_AVX2),0)
-FLAGS += -mavx -mavx2 -march=native -fopenmp
+FLAGS += -mavx -mavx2 -march=native -fopenmp -mno-avx512f
 else
-FLAGS += -mno-avx -mno-avx2
+FLAGS += -mno-avx -mno-avx2 -mno-avx512f
 endif
 
 endif
