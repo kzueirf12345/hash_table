@@ -5,7 +5,7 @@
 #include <stdlib.h>
 
 #ifndef MAX_WORD_SIZE
-#define MAX_WORD_SIZE 32
+#define MAX_WORD_SIZE 32u
 #endif /*MAX_WORD_SIZE*/
 
 #ifndef MAP_SIZE

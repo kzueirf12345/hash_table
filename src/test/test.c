@@ -18,8 +18,71 @@
 
 char* get_text_from_file_(const char* const filename, size_t* const size);
 
-enum SmashMapError handle_chr_(smash_map_t* const map, const bool is_alpha, const char chr, 
-                               char* const key_buffer, size_t* const key_buffer_counter);
+enum SmashMapError handle_key_buffer_(smash_map_t* const map, __m256i* const key_buffer);
+
+
+#define MM256I_SHIFT_LEFT(v, n, res)                                                                \
+    do {                                                                                            \
+        if (n == 0)                                                                                 \
+            res = v;                                                                                \
+        else if (n < 16)                                                                            \
+        {                                                                                           \
+            res = _mm256_alignr_epi8(                                                               \
+                _mm256_permute2x128_si256(v, v, _MM_SHUFFLE(0, 0, 2, 0)),                           \
+                v,                                                                                  \
+                16u - n                                                                              \
+            );                                                                                      \
+        }                                                                                           \
+        else if (n == 16)                                                                           \
+        {                                                                                           \
+            res = _mm256_insertf128_si256(                                                          \
+                _mm256_setzero_si256(),                                                             \
+                _mm256_extractf128_si256(v, 1),                                                     \
+                0u                                                                                   \
+            );                                                                                      \
+        }                                                                                           \
+        else if (n < 32)                                                                            \
+        {                                                                                           \
+            res =_mm256_alignr_epi8(                                                                \
+                _mm256_setzero_si256(),                                                             \
+                _mm256_permute2x128_si256(v, v, _MM_SHUFFLE(0, 0, 2, 0)),                           \
+                32u - n                                                                              \
+            );                                                                                      \
+        }                                                                                           \
+        else res = _mm256_setzero_si256();                                                          \
+    } while(0)
+
+
+#define MM256I_SHIFT_RIGHT(v, n, res)                                                               \
+    do {                                                                                            \
+        if (n == 0)                                                                                 \
+            (res) = v;                                                                              \
+        else if (n < 16)                                                                            \
+        {                                                                                           \
+            res = _mm256_alignr_epi8(                                                               \
+                v,                                                                                  \
+                _mm256_permute2x128_si256(v, v, _MM_SHUFFLE(2, 0, 0, 1)),                           \
+                n                                                                                   \
+            );                                                                                      \
+        }                                                                                           \
+        else if (n == 16)                                                                           \
+        {                                                                                           \
+            (res) = _mm256_insertf128_si256(                                                        \
+                _mm256_setzero_si256(),                                                             \
+                _mm256_extractf128_si256(v, 0),                                                     \
+                1u                                                                                   \
+            );                                                                                      \
+        }                                                                                           \
+        else if (n < 32)                                                                            \
+        {                                                                                           \
+            res = _mm256_alignr_epi8(                                                               \
+                _mm256_permute2x128_si256(v, v, _MM_SHUFFLE(2, 0, 0, 1)),                           \
+                _mm256_setzero_si256(),                                                             \
+                n                                                                                   \
+            );                                                                                      \
+        }                                                                                           \
+        else res = _mm256_setzero_si256();                                                          \
+    } while(0)
 
 enum SmashMapError print_freq_dict(const char* const input_filename, 
                                    const char* const output_filename)
@@ -54,7 +117,7 @@ enum SmashMapError print_freq_dict(const char* const input_filename,
     const size_t chank_cnt = text_size / MAX_WORD_SIZE;
     const size_t chank_rem = text_size % MAX_WORD_SIZE;
 
-    char __attribute__((aligned(32))) key_buffer[MAX_WORD_SIZE] = {};
+    __m256i key_buffer = _mm256_setzero_si256();
     size_t key_buffer_counter = 0;
 
     for (size_t chank_ind = 0; chank_ind < chank_cnt; ++chank_ind)
@@ -68,34 +131,108 @@ enum SmashMapError print_freq_dict(const char* const input_filename,
             _mm256_cmpgt_epi8(chunk_upper, _mm256_set1_epi8('A' - 1))
         );
 
-        const int is_alpha_mask = _mm256_movemask_epi8(is_alpha);
+        const uint32_t mask = (uint32_t)_mm256_movemask_epi8(is_alpha);
 
-        for (int chr_ind = 0; chr_ind < MAX_WORD_SIZE; ++chr_ind)
+        const uint32_t starts = mask & ((~mask >> 1u) + (1u << (MAX_WORD_SIZE - 1u)));
+        const uint32_t ends   = mask & ((~mask << 1u) + 1u);
+        
+        uint32_t current_pos = 0;
+        while (current_pos < 32) 
         {
-            SMASH_MAP_ERROR_HANDLE(
-                handle_chr_(
-                    &map,
-                    (is_alpha_mask >> chr_ind) & 1,
-                    ((const char*)&chunk)[chr_ind],
-                    key_buffer,
-                    &key_buffer_counter
-                ),
+            const uint32_t word_start = _tzcnt_u32(starts >> current_pos) + current_pos;
+
+            if ((ends >> word_start) == 0)
+            {
+                MM256I_SHIFT_LEFT(chunk, word_start, key_buffer);
+                key_buffer_counter = MAX_WORD_SIZE - word_start;
+                break;
+            }
+
+            const uint32_t word_end = _tzcnt_u32(ends >> word_start) + word_start;
+            const uint32_t word_size = word_end - word_start + 1;
+            
+            __m256i shifted_chunk;
+            MM256I_SHIFT_RIGHT(chunk, MAX_WORD_SIZE - word_end - 1, shifted_chunk);
+
+            if (key_buffer_counter > 0)
+            {
+                MM256I_SHIFT_LEFT(shifted_chunk, MAX_WORD_SIZE - word_size - key_buffer_counter, shifted_chunk);
+                key_buffer = _mm256_or_si256(key_buffer, shifted_chunk);
+            } 
+            else 
+            {
+                MM256I_SHIFT_LEFT(shifted_chunk, MAX_WORD_SIZE - word_size, shifted_chunk);
+                key_buffer = shifted_chunk;
+            }
+
+            SMASH_MAP_ERROR_HANDLE(handle_key_buffer_(&map, &key_buffer),
                 smash_map_dtor(&map);
                 munmap(text, text_size);
             );
+
+            key_buffer_counter = 0;
+            key_buffer = _mm256_setzero_si256();
+
+            current_pos = word_end + 1;
         }
     }
 
-    for (size_t chr_ind = 0; chr_ind < chank_rem; ++chr_ind)
-    {
-        const char chr = text[text_size - chank_rem + chr_ind];
+    __m256i chunk = _mm256_load_si256((const __m256i*)text + chank_cnt);
+    MM256I_SHIFT_RIGHT(chunk, MAX_WORD_SIZE - chank_rem, chunk);
+    MM256I_SHIFT_LEFT (chunk, MAX_WORD_SIZE - chank_rem, chunk);
 
-        SMASH_MAP_ERROR_HANDLE(
-            handle_chr_(&map, isalpha(chr), chr, key_buffer, &key_buffer_counter),
+    const __m256i chunk_upper = _mm256_and_si256(chunk, _mm256_set1_epi8((char)0b11011111));
+
+    const __m256i is_alpha = _mm256_and_si256(
+        _mm256_cmpgt_epi8(_mm256_set1_epi8('Z' + 1),  chunk_upper), 
+        _mm256_cmpgt_epi8(chunk_upper, _mm256_set1_epi8('A' - 1))
+    );
+
+    const uint32_t mask = (uint32_t)_mm256_movemask_epi8(is_alpha);
+
+    const uint32_t starts = mask & ((~mask >> 1) + (1 << (MAX_WORD_SIZE - 1)));
+    const uint32_t ends   = mask & ((~mask << 1) + 1);
+    
+    uint32_t current_pos = 0;
+    while (current_pos < 32) 
+    {
+        const uint32_t word_start = _tzcnt_u32(starts >> current_pos) + current_pos;
+
+        if ((ends >> word_start) == 0)
+        {
+            MM256I_SHIFT_LEFT(chunk, word_start, key_buffer);
+            key_buffer_counter = MAX_WORD_SIZE - word_start;
+            break;
+        }
+
+        const uint32_t word_end = _tzcnt_u32(ends >> word_start) + word_start;
+        const uint32_t word_size = word_end - word_start + 1;
+        
+        __m256i shifted_chunk;
+        MM256I_SHIFT_RIGHT(chunk, MAX_WORD_SIZE - word_end - 1, shifted_chunk);
+
+        if (key_buffer_counter > 0)
+        {
+            MM256I_SHIFT_LEFT(shifted_chunk, MAX_WORD_SIZE - word_size - key_buffer_counter, shifted_chunk);
+            key_buffer = _mm256_or_si256(key_buffer, shifted_chunk);
+        } 
+        else 
+        {
+            MM256I_SHIFT_LEFT(shifted_chunk, MAX_WORD_SIZE - word_size, shifted_chunk);
+            key_buffer = shifted_chunk;
+        }
+
+        SMASH_MAP_ERROR_HANDLE(handle_key_buffer_(&map, &key_buffer),
             smash_map_dtor(&map);
             munmap(text, text_size);
         );
+
+        key_buffer_counter = 0;
+        key_buffer = _mm256_setzero_si256();
+
+        current_pos = word_end + 1;
     }
+    
 
     CALLGRIND_STOP_INSTRUMENTATION;
 
@@ -123,49 +260,26 @@ enum SmashMapError print_freq_dict(const char* const input_filename,
     return SMASH_MAP_ERROR_SUCCESS;
 }
 
-enum SmashMapError handle_chr_(smash_map_t* const map, const bool is_alpha, const char chr, 
-                                      char* const key_buffer, size_t* const key_buffer_counter)
+enum SmashMapError handle_key_buffer_(smash_map_t* const map, __m256i* const key_buffer)
 {
     lassert(!is_invalid_ptr(map), "");
     lassert(!is_invalid_ptr(key_buffer), "");
 
-    if (is_alpha)
+    size_t* val = smash_map_get_val(map, key_buffer);
+    if (val)
     {
-        IF_DEBUG(
-            if (*key_buffer_counter >= MAX_WORD_SIZE)
-            {
-                fprintf(stderr, "Founded word with size more then max valid\n");
-                return SMASH_MAP_ERROR_UNKNOWN;
-            }
-        )
-        key_buffer[(*key_buffer_counter)++] = chr;
+        ++*val;
     }
     else
     {
-        if (!*key_buffer_counter)
-        {
-            return SMASH_MAP_ERROR_SUCCESS;
-        }
-
-        size_t* val = smash_map_get_val(map, key_buffer);
-        if (val)
-        {
-            ++*val;
-        }
-        else
-        {
-            size_t temp_val = 1;
-            SMASH_MAP_ERROR_HANDLE(
-                smash_map_insert(
-                    map, 
-                    (smash_map_elem_t){.key = key_buffer, .val = &temp_val}
-                )
-            );
-        }
-
-        *key_buffer_counter = 0;
-        _mm256_storeu_si256((__m256i_u*)key_buffer, _mm256_setzero_si256());
-    } 
+        size_t temp_val = 1;
+        SMASH_MAP_ERROR_HANDLE(
+            smash_map_insert(
+                map, 
+                (smash_map_elem_t){.key = key_buffer, .val = &temp_val}
+            )
+        );
+    }
 
     return SMASH_MAP_ERROR_SUCCESS;
 }
