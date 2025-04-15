@@ -3,7 +3,8 @@
 		fist_build fist_clean fist_rebuild \
 		clean_all clean_log clean_out clean_obj clean_deps clean_txt clean_bin \
 		profile cheack_leaks \
-		set_freq reset_freq
+		set_freq reset_freq \
+		codegen
 
 
 PROJECT_NAME = hash_table
@@ -73,7 +74,7 @@ endif
 FLAGS += $(OPTIMIZE_LVL)
 
 ifneq ($(USE_AVX2),0)
-FLAGS += -mavx -mavx2 -march=native -fopenmp -mavx512f
+FLAGS += -mavx -mavx2 -march=native -fopenmp -mavx512f -mavx512vl -mavx512bw
 else
 FLAGS += -mno-avx -mno-avx2 -mno-avx512f
 endif
@@ -89,7 +90,8 @@ DIRS = utils flags smash_map smash_map/funcs smash_map/verification smash_map/du
 BUILD_DIRS = $(DIRS:%=$(BUILD_DIR)/%)
 
 SOURCES = main.c utils/utils.c flags/flags.c smash_map/funcs/funcs.c \
-		  smash_map/verification/verification.c smash_map/dumb/dumb.c test/test.c test/utils.c
+		  smash_map/verification/verification.c smash_map/dumb/dumb.c test/test.c test/utils.c \
+		  test/test_shift.c
 
 SOURCES_REL_PATH = $(SOURCES:%=$(SRC_DIR)/%)
 OBJECTS_REL_PATH = $(SOURCES:%.c=$(BUILD_DIR)/%.o)
@@ -109,7 +111,7 @@ rebuild: clean_all build
 $(PROJECT_NAME).out: $(OBJECTS_REL_PATH)
 	@$(COMPILER) $(FLAGS) -o $@ $^  $(LIBS)
 
-$(BUILD_DIR)/%.o : $(SRC_DIR)/%.c | ./$(BUILD_DIR)/ $(BUILD_DIRS) logger_build fist_build
+$(BUILD_DIR)/%.o : $(SRC_DIR)/%.c | codegen ./$(BUILD_DIR)/ $(BUILD_DIRS) logger_build fist_build
 	@$(COMPILER) $(FLAGS) -I$(SRC_DIR) -I./libs -I./assets -c -MMD -MP $< -o $@
 
 -include $(DEPS_REL_PATH)
@@ -135,6 +137,12 @@ fist_build:
 
 fist_clean:
 	make ADD_FLAGS="$(ADD_FLAGS)" clean -C ./libs/list_on_array
+
+
+codegen: 
+	python ./$(SRC_DIR)/test/gen_shift_macro.py \
+	--shl ./$(SRC_DIR)/test/mm256_shl.inc \
+	--shr ./$(SRC_DIR)/test/mm256_shr.inc
 
 
 

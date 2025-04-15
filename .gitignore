@@ -41,6 +41,7 @@
 *.su
 *.idb
 *.pdb
+vgcore*
 
 # Kernel Module Compile Results
 *.mod*
@@ -69,3 +70,4 @@ log/*
 *.gz
 *.toc
 *_minted-main
+

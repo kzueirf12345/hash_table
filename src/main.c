@@ -9,6 +9,7 @@
 #include "smash_map/funcs/funcs.h"
 #include "smash_map/verification/verification.h"
 #include "test/test.h"
+#include "test/test_shift.h"
 
 int init_all(flags_objs_t* const flags_objs, const int argc, char* const * argv);
 int dtor_all(flags_objs_t* const flags_objs);
@@ -20,6 +21,16 @@ int main(const int argc, char* const argv[])
     flags_objs_t flags_objs  = {};
 
     INT_ERROR_HANDLE(init_all(&flags_objs, argc, argv));
+
+    // for (int i = 0; i <= 33; ++i) 
+    // {
+    //     test_shr(i);
+    // }
+    
+    // for (int i = 0; i <= 33; ++i) 
+    // {
+    //     test_shl(i);
+    // }
 
     for (size_t test_num = 0; test_num < flags_objs.cnt_inout_files; ++test_num)
     {
