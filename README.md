@@ -382,4 +382,6 @@ size_t string_hash_func(const void* const string)
 
 Теперь самым низкопроизводительным участком кода является основная функция `print_freq_dict`. Далее будем оптимизировать её
 
-# ЖДИТЕ ОБНОВУ
+> Valgrind не поддерживает avx512. Автор перемеряет всё при помощи perf, приносим извенения за задержку README.
+
+> Please, hold on for answer, or call back later. The number is busy.
