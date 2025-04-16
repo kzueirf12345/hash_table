@@ -186,8 +186,9 @@ PROFILE_NUM ?= 1
 profile:
 	make set_freq ;
 	make USE_AVX2=$(USE_AVX2) ADD_FLAGS="-g" DEBUG_=0 rebuild;
-	valgrind --tool=callgrind --callgrind-out-file=profile$(PROFILE_NUM).out --dump-instr=yes ./$(PROJECT_NAME).out $(OPTS) ;
-	kcachegrind profile$(PROFILE_NUM).out ;
+	perf record -e cycles,instructions,cache-references,cache-misses -g ./$(PROJECT_NAME).out $(OPTS) ;
+	hotspot perf.data ;
+	# perf stat -e cycles,instructions,cache-references,cache-misses -g --filter="print_freq_dict" ./$(PROJECT_NAME).out $(OPTS) ;
 	make reset_freq 
 
 set_freq:

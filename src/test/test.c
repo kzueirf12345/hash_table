@@ -74,27 +74,9 @@ enum SmashMapError print_freq_dict(const char* const input_filename,
     if (chank_rem > 0)
     {
         __m256i chunk = _mm256_load_si256((const __m256i*)text + chank_cnt);
-        // fprintf(stderr, "chunk0: ");
-        // for (size_t i = 0; i < 32; ++i)
-        // {
-        //     fprintf(stderr, "%d ", ((const char*)&chunk)[i]);
-        // }
-        // fprintf(stderr, "\n");
-        MM256_SHL(chunk, chunk, MAX_WORD_SIZE - chank_rem);
-        // fprintf(stderr, "chunk1: ");
-        // for (size_t i = 0; i < 32; ++i)
-        // {
-        //     fprintf(stderr, "%d ", ((const char*)&chunk)[i]);
-        // }
-        // fprintf(stderr, "\n");
 
+        MM256_SHL(chunk, chunk, MAX_WORD_SIZE - chank_rem);
         MM256_SHR(chunk, chunk, MAX_WORD_SIZE - chank_rem);
-        // fprintf(stderr, "chunk2: ");
-        // for (size_t i = 0; i < 32; ++i)
-        // {
-        //     fprintf(stderr, "%d ", ((const char*)&chunk)[i]);
-        // }
-        // fprintf(stderr, "\n");
 
         SMASH_MAP_ERROR_HANDLE(handle_chunk_(chunk, &map, &key_buffer, &key_buffer_counter),
             munmap(text, text_size);
@@ -168,13 +150,6 @@ enum SmashMapError handle_chunk_(const __m256i chunk, smash_map_t* const map,
 
     const uint32_t ends   = mask & (~mask >> 1u);
     const uint32_t starts = mask & ((~mask << 1u) + 1u);
-
-    // fprintf(stderr, "mask:   ");
-    // print_bits(mask);
-    // fprintf(stderr, "ends:   ");
-    // print_bits(ends);
-    // fprintf(stderr, "starts: ");
-    // print_bits(starts);
     
     uint32_t current_pos = 0;
 
@@ -190,27 +165,9 @@ enum SmashMapError handle_chunk_(const __m256i chunk, smash_map_t* const map,
 
         const uint32_t word_end = _tzcnt_u32(ends >> word_start) + word_start;
         const uint32_t word_size = word_end - word_start + 1;
-
-        // fprintf(stderr, "word_start: %u\n", word_start);
-        // fprintf(stderr, "word_size: %u\n", word_size);
-        // fprintf(stderr, "word_end: %u\n", word_end);
-
-        // fprintf(stderr, "chunk: ");
-        // for (size_t i = 0; i < 32; ++i)
-        // {
-        //     fprintf(stderr, "%d ", ((const char*)&chunk)[i]);
-        // }
-        // fprintf(stderr, "\n");
         
         __m256i shifted_chunk = {};
         MM256_SHL(shifted_chunk, chunk, MAX_WORD_SIZE - word_end - 1);
-
-        // fprintf(stderr, "shifted_chunk: ");
-        // for (size_t i = 0; i < 32; ++i)
-        // {
-        //     fprintf(stderr, "%d ", ((const char*)&shifted_chunk)[i]);
-        // }
-        // fprintf(stderr, "\n");
 
         if (*key_buffer_counter > 0)
         {
@@ -227,19 +184,10 @@ enum SmashMapError handle_chunk_(const __m256i chunk, smash_map_t* const map,
             MM256_SHR(*key_buffer, shifted_chunk, MAX_WORD_SIZE - word_size);
         }
 
-        // fprintf(stderr, "key_buffer: ");
-        // for (size_t i = 0; i < 32; ++i)
-        // {
-        //     fprintf(stderr, "%d ", ((const char*)key_buffer)[i]);
-        // }
-        // fprintf(stderr, "\n");
-
         SMASH_MAP_ERROR_HANDLE(handle_key_buffer_(map, key_buffer, key_buffer_counter));
 
         current_pos = word_end + 1;
     }
-
-    // fprintf(stderr, "\n");
 
     return SMASH_MAP_ERROR_SUCCESS;
 }
