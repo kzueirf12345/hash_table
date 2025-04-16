@@ -42,7 +42,7 @@
 *.idb
 *.pdb
 vgcore*
-*.data
+*.data*
 
 # Kernel Module Compile Results
 *.mod*
