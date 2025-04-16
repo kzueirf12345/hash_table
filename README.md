@@ -337,7 +337,7 @@ jl .Cicle
 
 **Общее время выполнения** - $(1 561 \pm 1) * 10^6$ тактов
 
-Это лучше предыдущей версии на $24.88\% \pm 0.28\%$.
+Это лучше предыдущей версии на $24.88$% $\pm$ $0.28$%.
 
 Теперь оценим изменённые показания времени выполнения. Самой горячей функцией является подсчёт хэша. Далее будем оптимизировать её
 
@@ -381,7 +381,7 @@ size_t string_hash_func(const void* const string)
 
 **Общее время выполнения** - $(1 227 \pm 1) * 10^6$ тактов
 
-Это лучше предыдущей версии на $21.4\% \pm 0.43\%$.
+Это лучше предыдущей версии на $21.4$% $\pm$ $0.43$%.
 
 Теперь самым низкопроизводительным участком кода является основная функция `print_freq_dict`. Далее будем оптимизировать её.
 
@@ -900,15 +900,15 @@ enum SmashMapError handle_key_buffer_(smash_map_t* const map, __m256i* const key
 | Оптимизация         | Среднее время выполнения (такт*$10^6$) | Ускорение относительно предыдущего этапа (%)  | Flame Graph | Время в % |
 |---------------------|-------------------------------------|-----------------------------------------------|-------------|-------------|
 | **Без оптимизаций** | $2749 \pm 10$                   | —                                             | <a href="readme_assets/flame0.png"><img src="readme_assets/flame0.png" width="300"></a> | <a href="readme_assets/percent_perf0.png"><img src="readme_assets/percent_perf0.png" width="300"></a> |
-| **fist_find_32**    | $1906 \pm 34$                   | $30\% \pm 1.8\%$                              | <a href="readme_assets/flame1.png"><img src="readme_assets/flame1.png" width="300"></a> | <a href="readme_assets/percent_perf1.png"><img src="readme_assets/percent_perf1.png" width="300"></a> |
-| **hash-функция**    | $1406 \pm 22$                   | $26\% \pm 2.8\%$                              | <a href="readme_assets/flame2.png"><img src="readme_assets/flame2.png" width="300"></a> | <a href="readme_assets/percent_perf2.png"><img src="readme_assets/percent_perf2.png" width="300"></a> |
-| **Парсинг текста**  | $1518 \pm 6$                   | $−8\% \pm 1.7\%$ (замедление)                 | <a href="readme_assets/flame3.png"><img src="readme_assets/flame3.png" width="300"></a> | <a href="readme_assets/percent_perf3.png"><img src="readme_assets/percent_perf3.png" width="300"></a> |
+| **fist_find_32**    | $1906 \pm 34$                   | $30$% $\pm$ $1.8$%                              | <a href="readme_assets/flame1.png"><img src="readme_assets/flame1.png" width="300"></a> | <a href="readme_assets/percent_perf1.png"><img src="readme_assets/percent_perf1.png" width="300"></a> |
+| **hash-функция**    | $1406 \pm 22$                   | $26$% $\pm$ $2.8$%                              | <a href="readme_assets/flame2.png"><img src="readme_assets/flame2.png" width="300"></a> | <a href="readme_assets/percent_perf2.png"><img src="readme_assets/percent_perf2.png" width="300"></a> |
+| **Парсинг текста**  | $1518 \pm 6$                   | $−8$% $\pm$ $1.7$% (замедление)                 | <a href="readme_assets/flame3.png"><img src="readme_assets/flame3.png" width="300"></a> | <a href="readme_assets/percent_perf3.png"><img src="readme_assets/percent_perf3.png" width="300"></a> |
 
 К сожалению, последняя оптимизация оказалась провальной. Это можно связать с большим количество накладных расходов на обработку граничных условий. Но зато мы научились работать ещё и с `perf` :).
 
 ## Итоги
 
-Самая быстрая из оптимизированных версий лучше чем изначальная на $48.8\% \pm 0.4\%$ по измерениям при помощи `perf` и на $40.95\% \pm 0.1\%$ по измерениям при помощи `valgrind`. Такое различие в ускорении может быть обусловлено разными подходами к измерению времени выполнения у этих двух утилит, а также влиянием нестационарных фоновых процессов, при которых проводились измерения.
+Самая быстрая из оптимизированных версий лучше чем изначальная на $48.8$% $\pm$ $0.4$% по измерениям при помощи `perf` и на $40.95$% $\pm$ $0.1$% по измерениям при помощи `valgrind`. Такое различие в ускорении может быть обусловлено разными подходами к измерению времени выполнения у этих двух утилит, а также влиянием нестационарных фоновых процессов, при которых проводились измерения.
 
 А теперь извините, я хочу добить эту ридмишку до 1000 строк. ПЕСНЮЮЮЮ ЗАПЕЕЕЕЕВАЙ
 
