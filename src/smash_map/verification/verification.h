@@ -3,8 +3,8 @@
 
 #include <assert.h>
 
-#include "smash_map/structs.h"
-#include "smash_map/dumb/dumb.h"
+#include "../structs.h"
+#include "../dumb/dumb.h"
 
 enum SmashMapError
 {

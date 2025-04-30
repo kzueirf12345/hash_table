@@ -80,35 +80,42 @@ endif
 
 FLAGS += $(ADD_FLAGS)
 
-LIBS = -lm -L./libs/logger -llogger -L./libs/list_on_array -lfist
+LIBS = libs/list_on_array/libfist.a libs/logger/liblogger.a
 
 
 DIRS = utils flags smash_map smash_map/funcs smash_map/verification smash_map/dumb test
 BUILD_DIRS = $(DIRS:%=$(BUILD_DIR)/%)
 
-SOURCES = main.c utils/utils.c flags/flags.c smash_map/funcs/funcs.c \
-		  smash_map/verification/verification.c smash_map/dumb/dumb.c test/test.c test/utils.c
+SOURCES = utils/utils.c flags/flags.c smash_map/funcs/funcs.c \
+		  smash_map/verification/verification.c smash_map/dumb/dumb.c
 
 SOURCES_REL_PATH = $(SOURCES:%=$(SRC_DIR)/%)
 OBJECTS_REL_PATH = $(SOURCES:%.c=$(BUILD_DIR)/%.o)
 DEPS_REL_PATH = $(OBJECTS_REL_PATH:%.o=%.d)
 
+all: build
 
-all: build start
+build: lib$(PROJECT_NAME).a
 
-start:
-	./$(PROJECT_NAME).out $(OPTS)
-
-build: $(PROJECT_NAME).out
-
-rebuild: clean_all build
+rebuild: clean_all
 
 
-$(PROJECT_NAME).out: $(OBJECTS_REL_PATH)
-	@$(COMPILER) $(FLAGS) -o $@ $^  $(LIBS)
+# ar -rcs lib$(PROJECT_NAME).a $(OBJECTS_REL_PATH) ./libs/list_on_array/libfist.a # ./libs/logger/liblogger.a
+lib$(PROJECT_NAME).a : $(OBJECTS_REL_PATH)
+	# mkdir -p temp
+	# cd temp
 
-$(BUILD_DIR)/%.o : $(SRC_DIR)/%.c | ./$(BUILD_DIR)/ $(BUILD_DIRS) logger_build fist_build
-	@$(COMPILER) $(FLAGS) -I$(SRC_DIR) -I./libs -I./assets -c -MMD -MP $< -o $@
+	ar x ./libs/list_on_array/libfist.a
+	ar x ./libs/logger/liblogger.a
+
+	ar -rcs lib$(PROJECT_NAME).a $(OBJECTS_REL_PATH) *.o
+
+	rm -rf *.o
+	# cd ..
+	# rm -rf temp
+
+$(BUILD_DIR)/%.o : $(SRC_DIR)/%.c |./$(BUILD_DIR)/ $(BUILD_DIRS) logger_build fist_build
+	@$(COMPILER) $(FLAGS) -I./libs -I$(SRC_DIR) -c -MMD -MP $< -o $@
 
 -include $(DEPS_REL_PATH)
 
@@ -138,7 +145,7 @@ fist_clean:
 
 clean_all: clean_obj clean_deps clean_out logger_clean fist_clean
 
-clean: clean_obj clean_deps clean_out
+clean: clean_obj clean_deps clean_out clean_a
 
 clean_log:
 	rm -rf ./log/*
@@ -158,32 +165,5 @@ clean_txt:
 clean_bin:
 	rm -rf ./*.bin
 
-clean_gcda:
-	sudo find ./ -type f -name "*.gcda" -exec rm -f {} \;
-
-
-OPTS ?= -i 3 \
-		./assets/wap.txt ./assets/wap_out.txt \
-		./assets/potter.txt ./assets/potter_out.txt \
-		./assets/lorem.txt ./assets/lorem_out.txt
-
-check_leaks: build
-	make rebuild ADD_OPTS="-g" DEBUG_=0 ;
-	valgrind --leak-check=full --show-leak-kinds=all ./$(PROJECT_NAME).out $(OPTS)
-
-PROFILE_NUM ?= 1
-
-profile:
-	make set_freq ;
-	make rebuild ADD_OPTS="-g" DEBUG_=0 ;
-	valgrind --tool=callgrind --callgrind-out-file=profile$(PROFILE_NUM).out --dump-instr=yes ./$(PROJECT_NAME).out $(OPTS) ;
-	kcachegrind profile$(PROFILE_NUM).out ;
-	make reset_freq 
-
-set_freq:
-	sudo cpupower frequency-set --max 2.4GHz ;
-	sudo cpupower frequency-set --min 2.4GHz
-
-reset_freq:
-	sudo cpupower frequency-set --max 4GHz ;
-	sudo cpupower frequency-set --min 0.1GHz
+clean_a:
+	rm -rf lib$(PROJECT_NAME).a

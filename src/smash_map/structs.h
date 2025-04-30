@@ -3,7 +3,7 @@
 
 #include <stdlib.h>
 
-#include "list_on_array/libfist.h"
+#include "../../libs/list_on_array/libfist.h"
 
 typedef struct SmashMapElem
 {

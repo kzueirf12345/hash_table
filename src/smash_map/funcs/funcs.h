@@ -1,8 +1,7 @@
 #ifndef HASH_TABLE_SRC_SMASH_MAP_FUNCS_H
 #define HASH_TABLE_SRC_SMASH_MAP_FUNCS_H
 
-#include "smash_map/structs.h"
-#include "list_on_array/libfist.h"
+#include "../structs.h"
 
 enum SmashMapError smash_map_ctor_NOT_USE(smash_map_t* const map, const size_t size,
                                           const size_t key_size, const size_t val_size,
