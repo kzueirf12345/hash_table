@@ -97,7 +97,7 @@ all: build
 
 build: lib$(PROJECT_NAME).a
 
-rebuild: clean_all
+rebuild: clean_all build
 
 
 # ar -rcs lib$(PROJECT_NAME).a $(OBJECTS_REL_PATH) ./libs/list_on_array/libfist.a # ./libs/logger/liblogger.a
